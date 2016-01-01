@@ -1,0 +1,26 @@
+application: mobianga
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: true
+
+handlers:
+- url: /game
+  static_dir: static
+  
+- url: /admin/.*
+  script: google.appengine.ext.admin.application
+  login: admin
+  
+- url: /animal/.*
+  script: tutorial.app
+  
+- url: /.*
+  script: AnnotationGame.app
+  
+libraries:
+- name: django
+  version: "1.2" 
+
+builtins:
+- remote_api: on

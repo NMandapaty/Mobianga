@@ -1,0 +1,6 @@
+backends:
+- name: updates
+  options: dynamic
+  #start: admin.app
+  
+  #C:\Progra~1\Python27\python.exe C:\Progra~2\Google\google_appengine\appcfg.py backends . update

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>jstree test</title>
+ 
+	<script type="text/javascript" src="../_lib/jquery.js"></script>
+	<script type="text/javascript" src="../_lib/jquery.cookie.js"></script>
+	<script type="text/javascript" src="../_lib/jquery.hotkeys.js"></script>
+	<script type="text/javascript" src="../jquery.jstree.js"></script>
+	<link type="text/css" rel="stylesheet" href="../_docs/syntax/!style.css"/>
+	<link type="text/css" rel="stylesheet" href="../_docs/!style.css"/>
+	<script type="text/javascript" src="../_docs/syntax/!script.js"></script>
+
+ 
+<!-- 	
+	<script type="text/javascript" src="/game/jquery.js"></script>
+	<script type="text/javascript" src="/game/jquery.cookie.js"></script>
+	<script type="text/javascript" src="/game/jquery.hotkeys.js"></script>
+	<script type="text/javascript" src="/game/jquery.jstree.js"></script>
+	<link type="text/css" rel="stylesheet" href="/game/!style.css"/>
+	<link type="text/css" rel="stylesheet" href="/game/style.css"/>
+	<script type="text/javascript" src="/game/!script.js"></script>
+ -->	
+ 
+</head>
+<body>
+<h1>jsTree</h1>
+<br>
+
+
+<script type = 'text/javascript'>
+	$(function () {
+		// TO CREATE AN INSTANCE
+		// select the tree container using jQuery
+		$("#demo1")
+			// call `.jstree` with the options object
+			.jstree({
+				// the `plugins` array allows you to configure the active plugins on this instance
+				"plugins" : ["themes","html_data","ui","crrm","hotkeys"],
+				// each plugin you have included can have its own config object
+				//"core" : { "initially_load" : [ "phtml_1", "phtml_4" ] }
+				// it makes sense to configure a plugin only if overriding the defaults
+			})
+			// EVENTS
+			// each instance triggers its own events - to process those listen on the container
+			// all events are in the `.jstree` namespace
+			// so listen for `function_name`.`jstree` - you can function names from the docs
+			.bind("loaded.jstree", function (event, data) {
+				// you get two params - event & data - check the core docs for a detailed description
+			});
+		// INSTANCES
+		// 1) you can call most functions just by selecting the container and calling `.jstree("func",`
+		setTimeout(function () { $("#demo1").jstree("set_focus"); }, 500);
+		// with the methods below you can call even private functions (prefixed with `_`)
+		// 2) you can get the focused instance using `$.jstree._focused()`. 
+		//setTimeout(function () { $.jstree._focused().select_node("#phtml_1"); }, 1000);
+		// 3) you can use $.jstree._reference - just pass the container, a node inside it, or a selector
+		//setTimeout(function () { $.jstree._reference("#phtml_1").close_node("#phtml_1"); }, 1500);
+		// 4) when you are working with an event you can use a shortcut
+		//$("#demo1").bind("open_node.jstree", function (e, data) {
+			// data.inst is the instance which triggered this event
+			//data.inst.select_node("#phtml_1", true);
+		//});
+		//setTimeout(function () { $.jstree._reference("#phtml_1").open_node("#phtml_1"); }, 2500);
+	});
+</script>
+
+<script type='text/javascript'>
+	//Note method 2) and 3) use `one`, this is because if `refresh` is called those events are triggered
+	$(function () {
+		$("#demo1")
+			.jstree({ "plugins" : ["themes","html_data","ui"] })
+			// 1) the loaded event fires as soon as data is parsed and inserted
+			//.bind("loaded.jstree", function (event, data) { })
+			// 2) but if you are using the cookie plugin or the core `initially_open` option:
+			.one("reopen.jstree", function (event, data) { })
+			// 3) but if you are using the cookie plugin or the UI `initially_select` option:
+			//.one("reselect.jstree", function (event, data) { });
+	});
+</script>
+
+<script type='text/javascript'>
+	$(function () {
+		$("#demo1")
+			.jstree({ "plugins" : ["themes","html_data","ui"] })
+			// 1) if using the UI plugin bind to select_node
+			.bind("select_node.jstree", function (event, data) { 
+				// `data.rslt.obj` is the jquery extended node that was clicked
+				alert(data.rslt.obj.attr("id"));
+			})
+			// 2) if not using the UI plugin - the Anchor tags work as expected
+			//    so if the anchor has a HREF attirbute - the page will be changed
+			//    you can actually prevent the default, etc (normal jquery usage)
+			.delegate("a", "click", function (event, data) { event.preventDefault(); })
+	});
+</script>
+
+
+<div id='demo1' class='demo jstree jstree-0 jstree-default jstree-focused' style="height:200px;">
+	<ul>
+		<li id="phtml_1" class='jstree-leaf'>
+			<ins class='jstree-icon'> </ins>
+			<a href='#'>
+				Root node 1
+			</a>
+			<ul>
+				<li id='phtml_2' class='jstree-leaf'>
+					<ins class='jstree-icon'> </ins>
+					<a href='#'>
+						Child node 1
+					</a>
+				</li>
+				
+				<li id='phtml_3' class='jstree-last jstree-leaf'>
+					<ins class='jstree-icon'> </ins>
+					<a href='#'>
+						Child node 2
+					</a>
+				</li>
+			</ul>
+		</li>
+		<li id='phtml_4' class='jstree-last jstree-leaf'>
+			<ins class='jstree-icon'> </ins>
+			<a href='#'>
+				Root node 2
+			</a>
+			<ul>
+				<li id='phtml_5' class='jstree-leaf'>
+					<ins class='jstree-icon'> </ins>
+					<a href='#'>
+						Child node 1
+					</a>
+				</li>
+				
+				<li id='phtml_6' class='jstree-last jstree-leaf'>
+					<ins class='jstree-icon'> </ins>
+					<a href='#'>
+						Child node 2
+					</a>
+				</li>
+			</ul>
+		</li>
+	</ul>
+</div>
+
+
+</body> 
+</html>

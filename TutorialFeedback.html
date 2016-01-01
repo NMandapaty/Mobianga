@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Mobianga!</title>
+
+<link type="text/css" rel="stylesheet" href="/game/_docs/normalize.css"/>
+<link type="text/css" rel="stylesheet" href="/game/_docs/oranges.css"/>
+<!-- 
+<link type="text/css" rel="stylesheet" href="/game/_docs/Istyle.css"/ media="Screen" />
+<link type="text/css" rel="stylesheet" href="/game/_docs/Istyleh.css"/ media="handheld" />
+
+<link type="text/css" rel="stylesheet" href="/game/_docs/syntax/Istyle.css"/>
+<link type="text/css" rel="stylesheet" href="/game/_docs/Istyle.css"/>
+-->
+</head>
+<body>
+<div id="wrap">
+
+<div id="header">
+   <h1>Mobianga</h1>
+   <h2>The annotation game</h1>	   
+</div>
+
+<div id="menu">
+<ul>
+<li><a href="/">Home</a></li>
+<li><a href="/about">About</a></li>
+</ul>
+</div>  
+
+<div id = "right">   
+<h3>How you did</h3>
+	<h2>Animal:</h2>{{animal}}
+	<h2>Your answer: </h2> <i>{{classification_name}}</i> <br>
+	<!-- 
+	<b>{{ agree_path|join:" - " }}</b> -
+	{{ classification_path|join:" - " }}	
+	 -->
+	<h2>The correct path:</h2>  <i>{{answer.DBName}} (English - {{answer.DBEnglish}})</i>
+	<!--
+	<b>{{ agree_path|join:" - " }}</b> -
+	<i>{{ answer_path|join:" - " }}</i>	
+	 -->
+	<div>
+	 <br>
+	Points earned: {{ total_points }} <br>
+	Time taken: {{ time }} seconds<br>
+	{% if averageTime %}
+		Average time for previous players: {{ averageTime }} seconds<br>
+	{% endif %}
+	<br>
+	</div>	
+	{% if isGuest %}
+		<div>
+			<form action='/guest' method='get'>
+				<input type='hidden' name='game' value='animal'>
+				<input type='hidden' name='guest_key' value='{{player_key}}'>
+				<button class="button red" type='submit'>Go Again</button>
+			</form>
+		</div>
+	{% else %}	
+		<div>
+			<form action='/animal/game' method='get'>
+				<button class="button red" type='submit'>Go Again</button>
+			</form>
+		</div>
+	{% endif %}
+</div>
+
+<div id="left"> 
+<h3>Player Stats</h3>
+<ul>
+		Currently signed in as:
+		<b>{{ player.DBName }}</b>
+		<br>
+		Points: 
+		{{ player.DBPoints }}
+		<br>
+  </ul>
+</div>
+
+<div id='left'>
+<h3>Leader Board</h3>
+{% for leader in leaders %}
+<div>
+{{forloop.counter}}. 
+{{leader.DBName}}	-	{{leader.DBPoints}}
+</div>
+{% endfor %}
+
+</div>
+
+<div style="clear: both;"> </div>
+<div id="footer">
+Created by Nishant Mandapaty <br> 
+Email: <a href='mailto:nishantmandapaty@gmail.com'>nishantmandapaty@gmail.com</a>
+</div>
+</div>
+</body>
+</html>

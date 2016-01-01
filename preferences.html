@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Mobianga!</title>
+
+<link type="text/css" rel="stylesheet" href="/game/_docs/normalize.css"/>
+<link type="text/css" rel="stylesheet" href="/game/_docs/oranges.css"/>
+<!-- 
+<link type="text/css" rel="stylesheet" href="/game/_docs/Istyle.css"/ media="Screen" />
+<link type="text/css" rel="stylesheet" href="/game/_docs/Istyleh.css"/ media="handheld" />
+
+<link type="text/css" rel="stylesheet" href="/game/_docs/syntax/Istyle.css"/>
+<link type="text/css" rel="stylesheet" href="/game/_docs/Istyle.css"/>
+-->
+</head>
+<body>
+<div id="wrap">
+
+<div id="header">
+   <h1>Mobianga</h1>
+   <h2>The annotation game</h1>
+</div> 
+ 
+<div id="menu">
+<ul>
+<li><a href="/">Home</a></li>
+<li><a href="/about">About</a></li>
+</ul>
+</div>  
+
+<div id = "right">   
+<h3>Select preferences</h3>
+<br>
+	 
+	<form action='/preferences' method='post' name='expertise'>
+		
+		 {% for group in groups %}
+			 <div><input id = {{forloop.counter}} type = 'checkbox' name = 'expertise' value = {{group.DBID}}> {{group.DBName}}</div>
+		 {% endfor %}
+		 
+		 <div><button class="button red" type='submit' value='Submit'>Done</button></div>
+		 <br>
+	</form>
+</div>
+<div id="left"> 
+<h3>Player Stats</h3>
+<ul>
+		Currently signed in as:
+		<b>{{ player.DBName }}</b>
+		<br>
+		Points: 
+		{{ player.DBPoints }}
+		<br>
+  </ul>
+</div>
+
+<div style="clear: both;"> </div>
+<div id="footer">
+Created by Nishant Mandapaty <br> 
+Email: nishantmandapaty@gmail.com
+</div>
+</div>
+</body>
+</html>

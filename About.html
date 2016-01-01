@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>About Mobianga</title>
+
+<link type="text/css" rel="stylesheet" href="/game/_docs/normalize.css"/>
+<link type="text/css" rel="stylesheet" href="/game/_docs/oranges.css"/>
+<script type="text/javascript" src="/game/_lib/jquery.js"></script>
+</head>
+<body>
+
+<div id="wrap">
+
+<div id="header">
+   <h1>Mobianga</h1>
+   <h2>The annotation game</h1>
+</div> 
+ 
+<div id="menu">
+<ul>
+<li><a href="/">Home</a></li>
+<li><a href="/about">About</a></li>
+</ul>
+</div>
+
+<div id="right"> 
+<h3>About Mobianga</h3>
+<br>
+<p>
+Mobianga is essentially a matching game. Given a gene as a prompt, research journal articles and find the disease most 
+closely linked to that gene. The most important part is that the game doesn't know if your answer is the correct one! Using 
+previous answers on the same prompt, we compare your answer to others to determine how many points to award. By harnessing the power of 
+the crowd to parse information, we hope to build an accurate database linking each gene to a disease. 
+</p>
+<br>
+
+<h3>About the Creator</h3>
+<br>
+<p>
+My name is Nishant Mandapaty, a 17-year-old high school senior from Naperville, Illinois. I am
+interested in both biology and computer science, and therefore am very attracted to
+the emerging field of computational biology. 
+</p>
+<p>
+I have been working with Dr. Benjamin Good at SuLab beginning in the summer of 2012, after finding 
+their group through the Google Summer of Code program. I plan to submit the results of my experiment with this game
+to the Intel Science Talent Search competition. 
+</div>  
+
+<div id="left"> 
+<h3>Player Stats</h3>
+<ul>
+	{% ifequal player None %}
+		Not signed in
+		<a href="/change">Sign in</a>
+	{% else %}
+		Currently signed in as:
+		<b>{{ player.DBName }}</b>
+		<br>
+		Points: 
+		{{ player.DBPoints }}
+		<br>
+		<a href="/change">Change Users</a>
+		<!-- 
+		<br>
+		<a href='/preferences?calledfrom=M'>Player Preferences</a>
+		 -->
+	{% endifequal %}
+  </ul>
+</div>
+
+<div style="clear: both;"> </div>
+<div id="footer">
+Created by Nishant Mandapaty <br> 
+Email: <a href='mailto:nishantmandapaty@gmail.com'>nishantmandapaty@gmail.com</a>
+</div>
+</div>
+</body>
+</html>

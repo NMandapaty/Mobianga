@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Mobianga!</title>
+
+<link type="text/css" rel="stylesheet" href="/game/_docs/normalize.css"/>
+<link type="text/css" rel="stylesheet" href="/game/_docs/oranges.css"/>
+<!-- 
+<link type="text/css" rel="stylesheet" href="/game/_docs/Istyle.css"/ media="Screen" />
+<link type="text/css" rel="stylesheet" href="/game/_docs/Istyleh.css"/ media="handheld" />
+
+<link type="text/css" rel="stylesheet" href="/game/_docs/syntax/Istyle.css"/>
+<link type="text/css" rel="stylesheet" href="/game/_docs/Istyle.css"/>
+-->
+</head>
+<body>
+<div id="wrap">
+
+<div id="header">
+   <h1>Mobianga</h1>
+   <h2>The annotation game</h1>	   
+</div>
+ 
+<div id="menu">
+<ul>
+<li><a href="/">Home</a></li>
+<li><a href="/about">About</a></li>
+</ul>
+</div>  
+ 
+<div id = "right">   
+<h3>How you did</h3>
+	{% if not cancerCount %}
+		<h2>Gene: {{gene}}</h2>
+	{% else %}
+		<h2>Challenge #{{challenge}}: {{gene}}</h2>
+	{% endif %}
+	<br>
+	<h2>Your answer: {{disease.DBName}}</h2>
+	
+	<div>
+	Points earned: {{ total_points }} <br>
+	Time taken: {{ time }} seconds<br>
+	{% if averageTime %}
+		Average time for previous players: {{ averageTime }} seconds<br>
+	<!--Percent of previous players that agree with your answer: {{ agree }}% <br> -->
+	{% else %}
+		You are the first player to answer this gene prompt!  
+	{% endif %}
+	<br>
+	{% if percents %}
+	<h2>Percent of other players who matched your answers at each level:</h2>
+	<table id='percents'>
+		{% for dis,percent,level in percents %}
+		<tr>
+			<td> Level {{forloop.counter}} </td>
+			<td> {{ dis }} </td>
+			<td> {{ percent }}% </td>
+		</tr>
+		{% endfor %}
+	</table>
+	{% endif %}
+	</div>
+	<br>
+	{% if isGuest %}
+		<div>
+			<form action='/guest' method='get'>
+				<input type='hidden' name='game' value='gene'>
+				<input type='hidden' name='guest_key' value='{{player_key}}'>
+				<button class="button red" type='submit'>Go Again</button>
+			</form>
+		</div>
+	{% else %}	
+		<div>
+			<form action='/game' method='get'>
+				{% if cancerCount %}
+				<button class='button red' type='submit'>Next Gene Challenge</button>
+				{% else %}
+				<button class="button red" type='submit'>Go Again</button>
+				{% endif %}
+			</form>
+		</div>
+	{% endif %}
+</div>
+
+<div id="left"> 
+<h3>Player Stats</h3>
+<ul>
+		Currently signed in as:
+		<b>{{ player.DBName }}</b>
+		<br>
+		Points: 
+		{{ player.DBPoints }}
+		<br>
+  </ul>
+</div>
+
+<div id='left'>
+<h3>Leader Board</h3>
+{% for leader in leaders %}
+<div>
+{{forloop.counter}}. 
+{{leader.DBName}}	-	{{leader.DBPoints}}
+</div>
+{% endfor %}
+
+</div>
+
+<div style="clear: both;"> </div>
+<div id="footer">
+Created by Nishant Mandapaty <br> 
+Email: <a href='mailto:nishantmandapaty@gmail.com'>nishantmandapaty@gmail.com</a>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>jsTree JSON Test</title>
+ 
+	<script type="text/javascript" src="static/jquery-1.8.2.js"></script>
+	<script type="text/javascript" src="static/_lib/jquery.cookie.js"></script>
+	<script type="text/javascript" src="static/_lib/jquery.hotkeys.js"></script>
+	<script type="text/javascript" src="static/jquery.jstree.js"></script>
+	<link type="text/css" rel="stylesheet" href="static/_docs/syntax/!style.css"/>
+	<link type="text/css" rel="stylesheet" href="static/_docs/!style.css"/>
+	<script type="text/javascript" src="static/_docs/syntax/!script.js"></script>
+ 
+<script>
+$(document).ready(function(){
+    $("#treeViewDiv").jstree({
+        "json_data" : {
+            "data":[
+                {
+                    "data" : "Search engines", "attr" : {'id' : 'html_SE'},
+                    "children" :[
+                                 {"data":"Yahoo", "metadata":{"href":"http://www.yahoo.com"}},
+                                 {"data":"Bing", "metadata":{"href":"http://www.bing.com"}},
+                                 {"data":"Google", "metadata" : {"href":"http://youtube.com"},
+                                	 "children":[
+                                	             {"data":"Youtube", "metadata":{"href":"http://youtube.com"}},
+                                	             {"data":"Gmail", "metadata":{"href":"http://www.gmail.com"}},
+                                	             {"data":"Orkut","metadata":{"href":"http://www.orkut.com"}}] 
+                                 }
+                                ]
+                },
+                {
+                    "data" : "Networking sites",
+                    "children" :[
+                        {"data":"Facebook", "metadata":{"href":"http://www.fb.com"}},
+                        {"data":"Twitter", "metadata":{"href":"http://twitter.com"}}
+                    ]
+                }
+            ],
+            "progressive_render" : true
+        },
+        "plugins" : [ "themes", "json_data", "ui" ]
+    }).bind("select_node.jstree", function(e, data)
+        {
+            if(jQuery.data(data.rslt.obj[0], "href"))
+            {
+                window.location=jQuery.data(data.rslt.obj[0], "href");
+            }
+            else
+            {
+                alert("No href defined for this element");
+            }
+        })
+});
+</script>
+</head>
+<body>
+
+<h1> jsTree JSON test</h1>
+
+<div id='treeViewDiv'>
+
+</div>
+
+</body>
+</html>

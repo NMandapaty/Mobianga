@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Mobianga!</title>
+
+<link type="text/css" rel="stylesheet" href="/game/_docs/normalize.css"/>
+<link type="text/css" rel="stylesheet" href="/game/_docs/oranges.css"/>
+<!-- 
+<link type="text/css" rel="stylesheet" href="/game/_docs/Istyle.css"/ media="Screen" />
+<link type="text/css" rel="stylesheet" href="/game/_docs/Istyleh.css"/ media="handheld" />
+
+<link type="text/css" rel="stylesheet" href="/game/_docs/syntax/Istyle.css"/>
+<link type="text/css" rel="stylesheet" href="/game/_docs/Istyle.css"/>
+-->
+
+<script type="text/javascript" src="/game/_lib/jquery.js"></script>
+	
+	<script type='text/javascript'>
+	
+	    //
+	    // As mentioned at http://en.wikipedia.org/wiki/XMLHttpRequest
+	    //
+	    if( !window.XMLHttpRequest ) XMLHttpRequest = function()
+	    {
+	      try{ return new ActiveXObject("Msxml2.XMLHTTP.6.0") }catch(e){}
+	      try{ return new ActiveXObject("Msxml2.XMLHTTP.3.0") }catch(e){}
+	      try{ return new ActiveXObject("Msxml2.XMLHTTP") }catch(e){}
+	      try{ return new ActiveXObject("Microsoft.XMLHTTP") }catch(e){}
+	      throw new Error("Could not find an XMLHttpRequest alternative.")
+	    };
+	   
+	    //
+	    // Makes an AJAX request to a local server function w/ optional arguments
+	    //
+	    // function_name: the name of the server's AJAX function to call
+	    // clickedID: ID of the clicked button
+	    //
+		function Request(function_name, args) {
+	    	if (!args)
+	    		args = new Array(); //if no additional arguments were provided, create it as an empty array
+		
+    		var callback = null;
+    		var len = args.length;
+    		if (len > 0 && typeof args[len-1] == 'function') {
+    		    callback = args[len-1];
+    		    len--;
+    		}
+    		var async = (callback != null);	    		
+	    		
+			var query = 'action=' + encodeURIComponent(function_name);
+	    	for(var i = 0; i < len; i++) {
+	    		var key = 'arg' + i;
+	    		try {
+	    			var val = JSON.stringify(args[i]);
+	    		}
+	    		catch (e) {
+	    			document.write(args[i])
+	    		}
+	    		query += '&' + key + '=' + encodeURIComponent(val);
+	    	}
+
+			//query += '&time=' + new Date().getTime(); //IE cache workaround - GAE AJAX tutorial
+			
+			//create XMLHttpRequest 'GET' request
+			var req = new XMLHttpRequest();
+			req.open('GET', '/rpc?' + query, async);
+			if(async) {
+				req.onreadystatechange = function() {
+					if(req.readyState == 4 && req.status == 200) {
+						var response = null;
+						response = req.responseText;
+						callback(response);
+					}
+				}
+			}
+		
+			req.send(null);
+		}
+		//function to pass arguments to AJAX call
+		function InstallFunction(obj, functionName) {
+			obj[functionName] = function(args) { Request(functionName, args); }
+		}
+		
+	</script>
+	
+	<script type='text/javascript'>
+	var server = {};
+	//Insert 'Add' as the name of the callable method
+	InstallFunction(server, 'getChildren');
+	
+	//Handy 'macro'
+	function doc(id){
+		return document.getElementById(id);
+	}	
+	
+    function pulse(obj, timeout) {
+    	var orig_color = obj.style.color;
+    	var orig_font = obj.style.fontSize;
+    	obj.style.color = '#f00';
+    	obj.style.fontSize = '20';
+    	setTimeout(function() {
+    		obj.style.color = orig_color;
+    		obj.style.fontSize = orig_font;
+    	}, timeout)
+    }
+    
+    function updateLeaders(leaders) {
+    	var leaders_list = doc('leaders');
+			//remove children
+			/*
+    	while (leaders_list.hasChildNodes()) {
+    	    leaders_list.removeChild(leaders_list.lastChild);
+    	}
+			*/
+		leaders_list.innerHTML = '';
+			//alert(String(leaders));
+    	
+    	for (var i = 0; i < leaders.length; i++) {
+    		var tup = leaders[i];
+    		var name = tup[0];
+    		var points = tup[1];
+    		var row = document.createElement('li');
+    		var text = document.createTextNode(name + ' - ' + points);
+    		row.appendChild(text);
+    		leaders_list.appendChild(row);
+    	}
+    }
+    
+    function updateFeedback(correct, addedPoints) {
+    	var feedbackDiv = doc('feedback');
+    	if(correct == null){
+        	var feedback = " ";
+        }
+        else if(correct && (addedPoints != null || addedPoints != "undefined")) {
+        	var feedback = "That's correct! You got " + addedPoints + " points!";
+        }
+        else {
+        	var feedback = "I'm sorry, but I think that is incorrect. "
+        	feedback += "You still got " + addedPoints + " points for trying, though.";
+        }
+    	//var feedbackText = document.createTextNode(feedback);
+    	//feedbackDiv.replaceChild(feedback, feedbackDiv.lastChild);
+    	feedbackDiv.innerHTML = feedback;
+    }
+    
+    function updatePoints(points) {
+        var pspan = doc('points');
+        var ptext = document.createTextNode(points);
+        pspan.style.fontWeight = 'bold';
+        pspan.replaceChild(ptext, pspan.lastChild);
+        pulse(pspan, 1000);
+    }
+    
+	function displayChildren(response) {
+	
+		var response = $.parseJSON(response);
+		
+		var leaders = response['leaders'];
+		updateLeaders(leaders);
+		
+        var points = String(response['points']);
+        updatePoints(points);
+        
+        var correct = response['correct'];
+        var addedPoints = response['addedPoints'];
+        updateFeedback(correct, addedPoints);
+        
+        var classification = response['classifications'];
+        
+		var div = doc('classifications');
+		
+		var tbl = document.createElement('table');
+		tbl.id = 'classificationButtons';
+		
+			var parent_row = tbl.insertRow(0);
+			var cell = parent_row.insertCell(0);
+							
+			var parentnode= document.createElement('button');
+            parentnode.type = 'button';
+            parentnode.setAttribute("class", "button red");
+            parentnode.name = classification['name'];
+            parentnode.id = classification['id'];
+            parentnode.appendChild(document.createTextNode(classification['name']));
+            parentnode.onclick = function() { 
+                var loadingImage = document.createElement('img');
+                loadingImage.src = '/game/_docs/loading.gif';
+                loadingImage.setAttribute('class', 'loadingpic');
+                tbl.replaceChild(loadingImage, tbl.lastChild);
+            	doGetChildren(classification['parent']); 
+           	};
+			
+			cell.appendChild(parentnode);	
+		
+		var children_cell = parent_row.insertCell(1);
+		var child_tbl = document.createElement('table');
+		child_tbl.id = 'childButtons';
+		
+		
+		var children = classification['children'];
+		for (var i = 0; i < children.length; i++) {
+            var child = children[i];
+            var childnode= document.createElement('button');
+            childnode.type = 'button';
+            childnode.name = 'classification';
+            childnode.value = child['name'];
+            childnode.appendChild(document.createTextNode(child['name']));
+            childnode.id = child['id'];
+			
+			var selectImage = document.createElement('img');
+			selectImage.src = '/game/_docs/select.png';
+			selectImage.setAttribute("class", "smallpic");
+			var selectButton = document.createElement('button');
+			selectButton.appendChild(selectImage);
+			selectButton.setAttribute("class", "button smallwhite");
+			selectButton.value = child['name'];
+			selectButton.onclick = function() {
+				var field = doc('classification_field');
+				field.value = this.value;
+				document.forms['game_form'].submit();
+			}
+			/*
+			childnode.ondblclick = function() { //submit form
+				var field = doc('classification_field');
+				field.value = this.value;
+				document.forms['game_form'].submit();
+			}		
+			*/
+			if (child['hasChildren']) {
+				childnode.onclick = function() {
+                    var loadingImage = document.createElement('img');
+                    loadingImage.src = '/game/_docs/loading.gif';
+                    loadingImage.setAttribute('class', 'loadingpic');
+                    tbl.replaceChild(loadingImage, tbl.lastChild);
+	                doGetChildrenAndStore(this.id); 
+	           	}
+				childnode.setAttribute("class", "button smallpink");					
+			}
+			else {
+				childnode.onclick = function() {
+                    var field = doc('classification_field');
+                    field.value = this.value;
+                    document.forms['game_form'].submit();
+            	}
+				childnode.setAttribute("class", "button smallgreen");				
+			}
+			
+			
+			var child_row = child_tbl.insertRow(i);
+			var childCell = child_row.insertCell(0);
+			childCell.appendChild(childnode);
+			
+			var selectCell = child_row.insertCell(1);
+			selectCell.appendChild(selectButton);
+		}
+		
+		children_cell.appendChild(child_tbl);
+		div.replaceChild(tbl, div.lastChild);
+	}
+	
+	function doGetChildren(clickedID) {
+		player_key = '{{ player_key }}';
+		server.getChildren([clickedID, 'AnimalClassification', player_key, displayChildren]);
+	}
+	
+	function doGetChildrenAndStore(clickedID) {
+		player_key = '{{ player_key }}';
+		animal_key = '{{ animal_key }}';
+		start_time = '{{ start_time }}';
+		server.getChildren([clickedID, 'AnimalClassification', player_key, 
+		                    animal_key, start_time, displayChildren]);
+	}
+
+	function load() {
+		var jsjson = '{{ json|escapejs }}';
+		displayChildren(jsjson);
+	}
+	</script>
+</head>
+<body onload='load()'>
+
+<div id="wrap">
+
+<div id="header">
+   <h1>Mobianga</h1>
+   <h2>The annotation game</h1>	   
+</div>
+
+<div id="menu">
+<ul>
+<li><a href="/">Home</a></li>
+<li><a href="/about">About</a></li>
+</ul>
+</div> 
+  
+<div id = "right">   
+<h3>Find the classification</h3>
+<br>
+	<b>
+	 Click on the classification button to display further categories. <br>
+	 Use the green checkmark next to a classification to select it as the answer. <br>
+	 If the classification is green, it has no further categories and will be selected as the answer if you click on it. <br>
+	 The number of points you earn is based on how accurate, how fast, and how detailed your answer is. <br>
+	 </b>
+<br>
+<table id="wrapper">
+   <tr>
+   <td>
+	<div id="animal">
+	{{animal.DBName}}
+	</div> 
+	</td>
+    </tr>
+</table>
+	<br>
+<div id='feedback'> </div>
+<form action = '/animal/feedback' method='get' id = 'game_form'>
+	<div id='classifications'> </div>
+	<div>
+	<input type='hidden' name='classification' id='classification_field'>
+	<input type='hidden' value='{{animal_key}}' name='animal_key'>
+	<input type='hidden' value='{{player_key}}' name = 'player_key'>
+	<input type='hidden' value='{{start_time}}' name='start_time'>
+	<input type='hidden' value='{{start_points}}' name = 'start_points'>
+	</div>
+</form>
+<br>
+<br>
+	<form action='/skip' method='get'>
+		{% if isGuest %}
+			<input type='hidden' name='calledFrom' value='/guest?game=animal&guest_key={{player_key}}'>
+		{% else %}
+			<input type='hidden' name='calledFrom' value='/animal/game'>
+		{% endif %}
+		<input type='hidden' name='player_key' value='{{player_key}}'>
+		<button type="submit" class='button red' value='Submit'>Skip this question</button>
+	</form>
+</div>
+<div>
+
+</div>
+<div id="left"> 
+<h3>Player Stats</h3>
+	<ul>
+        Currently signed in as:
+        <p id='name'> <b>{{ player.DBName }}</b> </p>
+        Points: 
+        <span id='points'> </span>
+  	</ul>
+<h3>Leader Board</h3>
+<ol id = 'leaders'> </ol>
+<br>
+</div>
+
+<div id='left'>
+<!-- 
+<h3>Leader Board</h3>
+{% for leader in leaders %}
+<div>
+{{forloop.counter}}. 
+{{leader.DBName}}	-	{{leader.DBPoints}}
+</div>
+{% endfor %}
+ -->
+</div>
+
+<div style="clear: both;"> </div>
+<div id="footer">
+Created by Nishant Mandapaty <br> 
+Email: <a href='mailto:nishantmandapaty@gmail.com'>nishantmandapaty@gmail.com</a>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link type="text/css" rel="stylesheet" href="/game/_docs/normalize.css"/>
+<link type="text/css" rel="stylesheet" href="/game/_docs/oranges.css"/>
+<!-- 
+<link type="text/css" rel="stylesheet" href="/game/_docs/Istyle.css"/ media="Screen" />
+<link type="text/css" rel="stylesheet" href="/game/_docs/Istyleh.css"/ media="handheld" />
+
+<link type="text/css" rel="stylesheet" href="/game/_docs/syntax/Istyle.css"/>
+<link type="text/css" rel="stylesheet" href="/game/_docs/Istyle.css"/>
+-->
+<title>Mobianga!</title>
+</head>
+<body>
+<div id="wrap">
+
+<div id="header">
+   <h1>Mobianga</h1>
+   <h2>The annotation game</h1>	   
+</div>
+
+<div id="menu">
+<ul>
+<li><a href="/">Home</a></li>
+<li><a href="/about">About</a></li>
+<li><a href="/animal/game">Animal</a></li>
+<li><a href="/game">Gene-Disease</a></li>
+</ul>
+</div>
+  
+<div id = "right">   
+<h3>Leader Board</h3>
+<br>
+
+{% for leader in leaders %}
+<div>
+{{forloop.counter}}. 
+{{leader.DBName}}	-	{{leader.DBPoints}}
+</div>
+{% endfor %}
+
+{% ifequal player None %}
+<form action='change' method='get'>
+	<button class='button red' type='submit' value='Submit'>Sign in</button>
+</form>
+<p>
+OR play as a guest. You do not need to login, but your answers will not be stored in the
+Mobianga database and therefore will not contribute to the game's purpose.
+</p>
+<table id="buttons">
+<tr>
+<td>
+<form action='/guest' method='get'>
+	<input type='hidden' name='game' value='animal'>
+	<button class="button red" type='submit' value='Submit'>Play Animal Challenge as a Guest</button>
+</form>
+</td>
+<td>
+<form action='/guest' method = 'get'>
+	<input type='hidden' name='game' value='gene'>
+	<button class="button red" type='submit' value='Submit'>Play Gene-Disease Challenge as a Guest</button>
+</form>
+</td>
+</tr>
+</table>
+{% else %}
+<br>
+<table id="buttons">
+<tr>
+<td>
+<form action='/animal/game' method='get'>
+	<button class="button red" type='submit' value='Submit'>Play Animal Challenge</button>
+</form>
+</td>
+<td>
+<form action='/game' method = 'get'>
+	<button class="button red" type='submit' value='Submit'>Play Gene-Disease Challenge</button>
+</form>
+</td>
+</tr>
+</table>
+{% endifequal %}
+<br>
+<h3>About Mobianga</h3>
+<p>
+Mobianga is essentially a matching game. Given a gene as a prompt, research journal articles and find the disease most 
+closely linked to that gene. The most important part is that the game doesn't know if your answer is the correct one! Using 
+previous answers on the same prompt, we compare your answer to others to determine how many points to award. By harnessing the power of 
+the crowd to parse information, we hope to build an accurate database linking each gene to a disease. 
+</p>
+</div>
+<!-- 
+<h3>Feedback</h3>
+{% for comment in comments %}
+<div>
+<i>{{comment.DBComment}}</i> 
+by
+{% ifequal comment.DBName None %}
+	Anonymous
+{% else %} 
+	{{comment.DBName}}
+{% endifequal %} 
+</div>
+{% endfor %}
+<br>
+
+<form action="/" method="post" accept-charset='utf-8'>
+	<div>From: <input type="text" name='name'></div>
+	<div><textarea name="comment" rows="3" cols="60" ></textarea></div>
+    
+	<div id="buttononly"><input type="submit" class="button red" value="Submit"></div>
+</form>
+-->
+
+<div id="left"> 
+<h3>Player Stats</h3>
+<ul>
+	{% ifequal player None %}
+		Not signed in <br>
+		<a href="/change">Sign in</a>
+		<!-- 
+		<br>
+		<a href='/guest'>Sign in as a guest</a>
+		 -->
+	{% else %}
+		Currently signed in as:
+		<b>{{ player.DBName }}</b>
+		<br>
+		Points: 
+		{{ player.DBPoints }}
+		<br>
+		<a href="/change">Change Users</a>
+		<br>
+		<a href='/signout'>Sign out</a>
+		<!-- 
+		<br>
+		<a href='/preferences?calledfrom=M'>Player Preferences</a>
+		 -->
+	{% endifequal %}
+  </ul>
+</div>
+
+<div style="clear: both;"> </div>
+<div id="footer">
+Created by Nishant Mandapaty <br> 
+Email: <a href='mailto:nishantmandapaty@gmail.com'>nishantmandapaty@gmail.com</a>
+</div>
+</div>
+</body>
+</html>

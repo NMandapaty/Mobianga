@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Mobianga!</title>
+
+<link type="text/css" rel="stylesheet" href="/game/_docs/normalize.css"/>
+<link type="text/css" rel="stylesheet" href="/game/_docs/oranges.css"/>
+<!-- 
+<link type="text/css" rel="stylesheet" href="/game/_docs/Istyle.css"/ media="Screen" />
+<link type="text/css" rel="stylesheet" href="/game/_docs/Istyleh.css"/ media="handheld" />
+
+<link type="text/css" rel="stylesheet" href="/game/_docs/syntax/Istyle.css"/>
+<link type="text/css" rel="stylesheet" href="/game/_docs/Istyle.css"/>
+-->
+<script type="text/javascript" src="/game/_lib/jquery.js"></script>
+        
+        <script type='text/javascript'>
+        
+            //
+            // As mentioned at http://en.wikipedia.org/wiki/XMLHttpRequest
+            //
+            if( !window.XMLHttpRequest ) XMLHttpRequest = function()
+            {
+              try{ return new ActiveXObject("Msxml2.XMLHTTP.6.0") }catch(e){}
+              try{ return new ActiveXObject("Msxml2.XMLHTTP.3.0") }catch(e){}
+              try{ return new ActiveXObject("Msxml2.XMLHTTP") }catch(e){}
+              try{ return new ActiveXObject("Microsoft.XMLHTTP") }catch(e){}
+              throw new Error("Could not find an XMLHttpRequest alternative.")
+            };
+           
+            //
+            // Makes an AJAX request to a local server function w/ optional arguments
+            //
+            // function_name: the name of the server's AJAX function to call
+            // clickedID: ID of the clicked button
+            //
+                function Request(function_name, args) {
+                if (!args)
+                        args = new Array(); //if no additional arguments were provided, create it as an empty array
+                
+                var callback = null;
+                var len = args.length;
+                if (len > 0 && typeof args[len-1] == 'function') {
+                    callback = args[len-1];
+                    len--;
+                }
+                var async = (callback != null);                 
+                        
+                        var query = 'action=' + encodeURIComponent(function_name);
+                for(var i = 0; i < len; i++) {
+                        var key = 'arg' + i;
+                        try {
+                                var val = JSON.stringify(args[i]);
+                        }
+                        catch (e) {
+                                document.write(args[i])
+                        }
+                        query += '&' + key + '=' + encodeURIComponent(val);
+                }
+
+                        //query += '&time=' + new Date().getTime(); //IE cache workaround - GAE AJAX tutorial
+                        
+                        //create XMLHttpRequest 'GET' request
+                        var req = new XMLHttpRequest();
+                        req.open('GET', '/rpc?' + query, async);
+                        if(async) {
+                                req.onreadystatechange = function() {
+                                        if(req.readyState == 4 && req.status == 200) {
+                                                var response = null;
+                                                response = req.responseText;
+                                                callback(response);
+                                        }
+                                }
+                        }
+                
+                        req.send(null);
+                }
+                //function to pass arguments to AJAX call
+                function InstallFunction(obj, functionName) {
+                        obj[functionName] = function(args) { Request(functionName, args); }
+                }
+                
+        </script>
+        
+        <script type='text/javascript'>
+        var server = {};
+        //Insert 'Add' as the name of the callable method
+        InstallFunction(server, 'getChildren');
+        
+        //Handy 'macro'
+        function doc(id){
+                return document.getElementById(id);
+        }       
+        
+        function pulse(obj, timeout) {
+        	var orig_color = obj.style.color;
+        	var orig_font = obj.style.fontSize;
+        	obj.style.color = '#f00';
+        	obj.style.fontSize = '20';
+        	setTimeout(function() {
+        		obj.style.color = orig_color;
+        		obj.style.fontSize = orig_font;
+        	}, timeout)
+        }
+        
+        function updatePoints(points) {
+        	var pspan = doc('points');
+            var ptext = document.createTextNode(String(points));
+            pspan.style.fontWeight = 'bold';
+            pspan.replaceChild(ptext, pspan.lastChild);
+            pulse(pspan, 1000);
+        }
+        
+        function removeText(node) {
+        	space = document.createTextNode(' ');
+    		node.replaceChild(space, node.lastChild);
+        }
+        
+        function updateFeedback(percent, pointsEarned) {
+        	var percent_span = doc('percent');
+        	var earned_span = doc('points earned');
+
+        	//alert(percent_span.innerHTML + ', ' + earned_span.innerHTML);
+        	if(pointsEarned > 0) {
+        		//alert('pointsEarned >= 0');
+        		if (percent != 'None' && percent != 0) {
+                	var percent_text = String(percent) + '% of previous players agree with that click';
+                	var percent_textNode = document.createTextNode(percent_text);
+                	percent_span.replaceChild(percent_textNode, percent_span.lastChild);
+                	//percent_span.innerHTML = percent_text;
+        		}
+        		else 
+					removeText(percent_span);
+        		
+            	var earned_text = 'You earned ' + pointsEarned + ' points for that click. Keep going!';
+            	var earned_textNode = document.createTextNode(earned_text);
+            	earned_span.replaceChild(earned_textNode, earned_span.lastChild);
+            	//earned_span.innerHTML = earned_text;
+        	}
+        	else{
+        		//alert('pointsEarned < 0 - ' + pointsEarned);
+				removeText(percent_span);
+				removeText(earned_span);
+        	}
+        	
+        }
+        function updateLeaders(leaders) {
+        	var leaders_list = doc('leaders');
+   			//remove children
+   			/*
+        	while (leaders_list.hasChildNodes()) {
+        	    leaders_list.removeChild(leaders_list.lastChild);
+        	}
+   			*/
+   			leaders_list.innerHTML = '';
+   			//alert(String(leaders));
+        	
+        	for (var i = 0; i < leaders.length; i++) {
+        		var tup = leaders[i];
+        		var name = tup[0];
+        		var points = tup[1];
+        		var row = document.createElement('li');
+        		var text = document.createTextNode(name + ' - ' + points);
+        		row.appendChild(text);
+        		leaders_list.appendChild(row);
+        	}
+        }
+        
+        function displayChildren(responseJSON) {
+        
+                var response = $.parseJSON(responseJSON);
+                var leaders = response['leaders']
+                updateLeaders(leaders);
+                
+                var points = response['points'];
+                if (points != null)
+                	updatePoints(points);
+                
+                var percent = response['percent'];
+                var pointsEarned = response['addedPoints'];
+                //if (percent != 'None')                	
+                    updateFeedback(percent, pointsEarned);
+                                
+                var diseases = response['diseases']
+                var div = doc('diseases');
+                
+                tbl = document.createElement('table');
+                tbl.id = 'diseaseButtons';
+                
+                        var parent_row = tbl.insertRow(0);
+                        var cell = parent_row.insertCell(0);
+                                                        
+                        var parentnode= document.createElement('button');
+                        parentnode.type = 'button';
+                        parentnode.setAttribute("class", "button red");
+                        parentnode.name = diseases['name'];
+                        parentnode.id =  diseases['id'];
+                        //parentnode.appendChild(document.createTextNode(diseases['name']));
+                        parentnode.innerHTML = diseases['name'];
+                        parentnode.onclick = function() { 
+                            var loadingImage = document.createElement('img');
+                            loadingImage.src = '/game/_docs/loading.gif';
+                            loadingImage.setAttribute('class', 'loadingpic');
+                            tbl.replaceChild(loadingImage, tbl.lastChild);
+                        	doGetChildren(diseases['parent']); 
+                       	};                        
+                        cell.appendChild(parentnode);   
+                
+                var children_cell = parent_row.insertCell(1);
+                var child_tbl = document.createElement('table');
+                child_tbl.id = 'childButtons';
+                
+                var children = diseases['children']
+                for (var i = 0; i < children.length; i++) {
+                        var child = children[i];
+                        var childnode= document.createElement('button');
+                        childnode.type = 'button';
+                        childnode.name = 'disease';
+                        childnode.value = child['name'];
+                        //childnode.appendChild(document.createTextNode(child['name']));
+                        childnode.innerHTML = child['name'];
+                        childnode.id = child['id'];
+                        
+                        var selectImage = document.createElement('img');
+                        selectImage.src = '/game/_docs/select.png';
+                        selectImage.setAttribute("class", "smallpic");
+                        var selectButton = document.createElement('button');
+                        selectButton.appendChild(selectImage);
+                        selectButton.setAttribute("class", "button smallwhite");
+                        selectButton.value = child['name'];
+                        selectButton.onclick = function() {
+                                var field = doc('disease_field');
+                                field.value = this.value;
+                                document.forms['game_form'].submit();
+                        }
+                        /*
+                        childnode.ondblclick = function() { //submit form
+                                var field = doc('disease_field');
+                                field.value = this.value;
+                                document.forms['game_form'].submit();
+                        }               
+                        */
+                        if (child['hasChildren']) {
+                                childnode.onclick = function() {
+                                    var loadingImage = document.createElement('img');
+                                    loadingImage.src = '/game/_docs/loading.gif';
+                                    loadingImage.setAttribute('class', 'loadingpic');
+                                    tbl.replaceChild(loadingImage, tbl.lastChild);
+                                    doGetChildrenAndStore(this.id); 
+                                }
+                                childnode.setAttribute("class", "button smallpink");
+                        }
+                        else {
+                                childnode.onclick = function() {
+                                        var field = doc('disease_field');
+                                        field.value = this.value;
+                                        document.forms['game_form'].submit();
+                                }
+                                childnode.setAttribute("class", "button smallgreen");                           
+                        }                       
+                        
+
+                        var child_row = child_tbl.insertRow(i);
+                        var childCell = child_row.insertCell(0);
+                        childCell.appendChild(childnode);
+                        
+                        var selectCell = child_row.insertCell(1);                       
+                        selectCell.appendChild(selectButton);
+                        
+                }
+                
+                children_cell.appendChild(child_tbl);
+                div.replaceChild(tbl, div.lastChild);
+        }
+        
+        function doGetChildren(clickedID) {
+        	player_key = '{{ player_key }}';
+            server.getChildren([clickedID, 'DiseaseGroup', player_key, displayChildren]);
+        }
+        
+        function doGetChildrenAndStore(clickedID) {
+        	player_key = '{{ player_key }}';
+           	gene_key = '{{ gene_key }}';
+           	start_time = '{{ start_time }}';
+        	server.getChildren([clickedID, 'DiseaseGroup', player_key, 
+        	                    gene_key, start_time, displayChildren])
+        }
+        
+        function load() {
+                var jsjson = '{{ json|escapejs }}';
+                displayChildren(jsjson);
+        }
+        </script>
+</head>
+<body onload='load()'>
+<div id="wrap">
+
+<div id="header">
+   <h1>Mobianga</h1>
+   <h2>The annotation game</h1>
+</div> 
+ 
+<div id="menu">
+<ul>
+<li><a href="/">Home</a></li>
+<li><a href="/about">About</a></li>
+</ul>
+</div>  
+<div id = "right">   
+<h3>Annotate with related disease</h3>
+<br>
+    <b>
+     Click on the disease type to display further disease categories. Green diseases have no further categories.<br>
+	 Use the green checkmark next to a disease type to select it as the final answer and move to the next challenge.
+	 
+	 You earn points for each click based on how deep in the tree you are. 
+	 The number of points you earn for each challenge is based on both how accurate and how fast you are. <br>
+	</b>
+<br>
+   <table id="genenum">
+   <tr>
+   		<td>
+   		{% if challenge %}
+       		Challenge #{{ challenge }} 
+       	{% endif %}
+        </td>
+    </tr>
+   </table>
+   <table id="gene">
+   <tr>
+   		<td>
+   		{{gene.DBName}}
+        </td>
+    </tr>
+   <!-- 
+    <tr>
+    	<td>
+        OMIM ID# - {{gene.DBMIM}}
+        </td>
+   </tr>
+    -->
+   </table>
+   <b>OMIM ID#: </b> {{gene.DBMIM}}
+   <br>
+   <b>Symbols: </b>  {% for symbol in gene.DBSymbols %}
+   		{{symbol}} |
+   		{% endfor %}
+   	<br>
+   <b>Summary: </b> {{gene.DBSummary}} <br>             
+    <br>
+    <div>
+    <span id = 'percent'> <!-- You earn points for each click. --> </span>
+    <br>
+    <span id = 'points earned'> 
+    	<!-- The number of points you earn is based on how deep you go in the tree.  -->
+    </span>
+    </div>
+    <form action = '/feedback' method='get' id = 'game_form'>
+        <div id='diseases'> </div>
+        <div>
+                <input type='hidden' name='disease' id='disease_field'>
+                <input type='hidden' value='{{gene_key}}' name='gene_key'>
+                <input type='hidden' value='{{player_key}}' name = 'player_key'>
+                <input type='hidden' value='{{start_time}}' name='start_time'>
+                <input type='hidden' value='{{start_points}}' name = 'start_points'>
+        </div>
+   	</form>
+	<br>
+	<br>
+	<form action='/skip' method='get'>
+		{% if isGuest %}
+			<input type='hidden' name='calledFrom' value='/guest?game=gene&guest_key={{player_key}}'>
+		{% else %}
+			<input type='hidden' name='calledFrom' value='/game'>
+		{% endif %}
+		<input type='hidden' name='player_key' value='{{player_key}}'>
+		<button type="submit" class='button red' value='Submit'>Skip this question</button>
+	</form>
+</div>
+<script type='text/javascript'>
+/*
+	var getMIMURL = function() {
+		if ({{ gene.DMIM }} == null) 
+			return 'http://www.ncbi.nlm.nih.gov/omim'
+		else
+			return "http://omim.org/entry/" + {{ gene.DBMIM }}
+	}
+*/
+</script>
+<div id="left"> 
+<h3>Player Stats</h3>
+        <ul>
+        Currently signed in as:
+        <p id='name'> <b>{{ player.DBName }}</b> </p>
+        Points: 
+        <span id = 'points'> </span>
+        </ul>
+
+<h3>Leader Board</h3>
+<ol id='leaders'> </ol>
+ <!--
+<h3>Leader Board</h3>
+<br>
+
+{% for leader in leaders %}
+<div>
+{{forloop.counter}}. 
+{{leader.DBName}}	-	{{leader.DBPoints}}
+</div>
+{% endfor %}
+-->
+<h3>Possible sources</h3>
+<ul>    
+<li><a href = 'http://www.ncbi.nlm.nih.gov/omim' target="_blank"> OMIM </a>  </li> 
+<li><a href = 'http://disease-ontology.org/' target="_blank">Disease Ontology</a> </li> 
+<li><a href = 'http://www.ncbi.nlm.nih.gov/pubmed' target="_blank">Pubmed</a> </li> 
+<li><a href = 'http://www.genecards.org/' target="_blank"> Genecards </a>  </li> 
+<li><a href = 'http://www.diseaseinfosearch.org/' target="_blank"> Disease Infosearch</a>  </li> 
+<li><a href = 'http://scholar.google.com/' target="_blank">Google Scholar</a>  </li> 
+</ul>
+</div>
+
+<div style="clear: both;"> </div>
+<div id="footer">
+Created by Nishant Mandapaty <br> 
+Email: <a href='mailto:nishantmandapaty@gmail.com'>nishantmandapaty@gmail.com</a>
+</div>
+</div>
+</body>
+</html>
